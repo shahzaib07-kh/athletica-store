@@ -1,0 +1,59 @@
+# ==============================================================================
+# ATHLETICA — Apache 2.4 VirtualHost Reverse Proxy Configuration
+# Required Apache Modules: mod_proxy, mod_proxy_http, mod_ssl, mod_rewrite, mod_headers
+# ==============================================================================
+
+<VirtualHost *:80>
+    ServerName athletica.pk
+    ServerAlias www.athletica.pk
+    DocumentRoot /var/www/athletica
+
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName athletica.pk
+    ServerAlias www.athletica.pk
+    DocumentRoot /var/www/athletica
+
+    # SSL Configuration
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/athletica.pk/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/athletica.pk/privkey.pem
+
+    # Security Headers
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+    # Reverse Proxy Setup
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+    # 1. Do NOT proxy uploads, admin, or API to Node.js (Serve via Apache PHP)
+    ProxyPass /uploads !
+    ProxyPass /admin !
+    ProxyPass /api !
+
+    # 2. Proxy everything else to Next.js on port 3000
+    ProxyPass / http://127.0.0.1:3000/
+    ProxyPassReverse / http://127.0.0.1:3000/
+
+    # PHP Execution Configuration for /admin and /api
+    <Directory /var/www/athletica>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    <Directory /var/www/athletica/uploads>
+        Options -Indexes -ExecCGI
+        AllowOverride None
+        <FilesMatch "\.(php|phtml|php3|php4|php5|phps|cgi|pl|py|sh|bash)$">
+            Require all denied
+        </FilesMatch>
+    </Directory>
+</VirtualHost>

@@ -1,0 +1,27 @@
+// ==============================================================================
+// ATHLETICA — PM2 Process Manager Configuration
+// Usage: pm2 start ecosystem.config.js --env production
+// ==============================================================================
+
+module.exports = {
+  apps: [
+    {
+      name: 'athletica-storefront',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start -p 3000',
+      cwd: '/var/www/athletica/frontend',
+      instances: 'max', // Multi-core cluster mode
+      exec_mode: 'cluster',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '500M',
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+        NEXT_PUBLIC_SITE_URL: 'https://athletica.pk',
+        NEXT_PUBLIC_MEDIA_URL: 'https://athletica.pk',
+        PHP_API_URL: 'http://127.0.0.1/api',
+      },
+    },
+  ],
+};

@@ -1,0 +1,10 @@
+# ATHLETICA — Upload Directory Security
+# Prevent execution of scripts in the uploads/slides directory
+
+Options -Indexes -ExecCGI
+RemoveHandler .php .phtml .php3 .php4 .php5 .phps
+AddHandler default-handler .php .phtml .php3 .php4 .php5 .phps
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|phps|cgi|pl|py|sh|bash)$">
+    Require all denied
+</FilesMatch>
